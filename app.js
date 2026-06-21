@@ -20,13 +20,13 @@ app.get('/api/health', (req, res) => {
 // ── Rutas de la API ────────────────────────────────────
 const authRoutes = require('./src/routes/authRoutes')
 const productoRoutes = require('./src/routes/productoRoutes')
-// const pedidoRoutes = require('./src/routes/pedidoRoutes')
-// const pagoRoutes = require('./src/routes/pagoRoutes')
+const pedidoRoutes = require('./src/routes/pedidoRoutes')
+const pagoRoutes = require('./src/routes/pagoRoutes')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/productos', productoRoutes)
-// app.use('/api/pedidos', pedidoRoutes)
-// app.use('/api/pagos', pagoRoutes)
+app.use('/api/pedidos', pedidoRoutes)
+app.use('/api/pagos', pagoRoutes)
 
 // ── Ruta no encontrada (404) ──────────────────────────
 app.use((req, res) => {
