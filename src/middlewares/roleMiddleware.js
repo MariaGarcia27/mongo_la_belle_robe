@@ -3,18 +3,19 @@
  * Siempre debe usarse DESPUÉS de verificarToken
  */
 
-const soloAdmin = (req, res, next) => {
-  if (req.user.rol !== 'admin') {
-    return res.status(403).json({ mensaje: 'Acceso denegado. Se requiere rol de administrador.' });
-  }
-  next();
+const verificarRol = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.rol)) {
+      return res.status(403).json({ 
+        mensaje: 'No tienes permiso para realizar esta acción' 
+      });
+    }
+    next();
+  };
 };
 
-const soloCliente = (req, res, next) => {
-  if (req.user.rol !== 'cliente') {
-    return res.status(403).json({ mensaje: 'Acceso denegado. Solo para clientes.' });
-  }
-  next();
-};
+// Atajos para los casos más comunes
+const soloAdmin = verificarRol('admin');
+const soloCliente = verificarRol('cliente');
 
-module.exports = { soloAdmin, soloCliente };
+module.exports = { verificarRol, soloAdmin, soloCliente };
