@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
+const errorMiddleware = require('./src/middlewares/errorMiddleware')
 
 const app = express()
 
@@ -34,11 +35,6 @@ app.use((req, res) => {
 })
 
 // ── Middleware global de errores ──────────────────────
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(err.status || 500).json({
-    mensaje: err.message || 'Error interno del servidor',
-  })
-})
+app.use(errorMiddleware)
 
 module.exports = app
