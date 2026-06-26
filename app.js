@@ -1,16 +1,21 @@
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
+const errorMiddleware = require('./src/middlewares/errorMiddleware')
 
 const app = express()
 
 // ── Middlewares globales ──────────────────────────────
 app.use(helmet())
-app.use(cors())
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+app.use(cors(corsOptions))
 app.use(express.json())
 
 // ── Ruta de salud (pública) ───────────────────────────
-// El profe la pide explícitamente: GET /api/health
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -19,18 +24,15 @@ app.get('/api/health', (req, res) => {
 })
 
 // ── Rutas de la API ────────────────────────────────────
-// A medida que se completen las demás issues, se van
-// descomentando e importando aquí:
-//
-// const authRoutes = require('./src/routes/authRoutes')
-// const productoRoutes = require('./src/routes/productoRoutes')
-// const pedidoRoutes = require('./src/routes/pedidoRoutes')
-// const pagoRoutes = require('./src/routes/pagoRoutes')
-//
-// app.use('/api/auth', authRoutes)
-// app.use('/api/productos', productoRoutes)
-// app.use('/api/pedidos', pedidoRoutes)
-// app.use('/api/pagos', pagoRoutes)
+const authRoutes = require('./src/routes/authRoutes')
+const productoRoutes = require('./src/routes/productoRoutes')
+const pedidoRoutes = require('./src/routes/pedidoRoutes')
+const pagoRoutes = require('./src/routes/pagoRoutes')
+
+app.use('/api/auth', authRoutes)
+app.use('/api/productos', productoRoutes)
+app.use('/api/pedidos', pedidoRoutes)
+app.use('/api/pagos', pagoRoutes)
 
 // ── Ruta no encontrada (404) ──────────────────────────
 app.use((req, res) => {
@@ -38,13 +40,6 @@ app.use((req, res) => {
 })
 
 // ── Middleware global de errores ──────────────────────
-// Se implementa completo en la Issue #8 (src/middlewares/errorMiddleware.js)
-// Por ahora dejamos uno básico para no romper el flujo.
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(err.status || 500).json({
-    mensaje: err.message || 'Error interno del servidor',
-  })
-})
+app.use(errorMiddleware)
 
 module.exports = app
