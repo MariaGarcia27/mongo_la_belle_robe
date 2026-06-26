@@ -1,6 +1,7 @@
 {
   "name": "la-belle-robe-api",
   "version": "1.0.0",
+  "packageManager": "pnpm@11.5.2",
   "description": "API REST para la tienda La Belle Robe - Parcial Ing. de Software",
   "main": "server.js",
   "type": "commonjs",
