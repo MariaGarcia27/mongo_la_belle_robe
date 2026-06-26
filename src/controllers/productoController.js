@@ -17,7 +17,7 @@ const getProductoById = async (req, res) => {
       return res.status(400).json({ mensaje: 'ID de producto inválido.' });
     }
     const producto = await productoService.obtenerProductoPorId(id);
-    if (!producto || !producto.activo) {
+    if (!producto?.activo) {
       return res.status(404).json({ mensaje: 'Producto no encontrado.' });
     }
     res.status(200).json({ producto });

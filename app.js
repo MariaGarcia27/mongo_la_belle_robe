@@ -7,7 +7,12 @@ const app = express()
 
 // ── Middlewares globales ──────────────────────────────
 app.use(helmet())
-app.use(cors())
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+app.use(cors(corsOptions))
 app.use(express.json())
 
 // ── Ruta de salud (pública) ───────────────────────────

@@ -26,7 +26,7 @@ const createPedido = async (req, res) => {
       }
 
       const producto = await Producto.findById(productoId);
-      if (!producto || !producto.activo) {
+      if (!producto?.activo) {
         return res.status(404).json({ mensaje: `Producto no encontrado: ${productoId}` });
       }
 
