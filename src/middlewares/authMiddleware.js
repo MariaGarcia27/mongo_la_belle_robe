@@ -6,7 +6,7 @@ const verificarToken = async (req, res, next) => {
     // Leer el token del header Authorization: Bearer <token>
     const authHeader = req.headers.authorization;
 
-    if (!authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ') !== true) {
       return res.status(401).json({ mensaje: 'Acceso denegado. Token no proporcionado.' });
     }
 
