@@ -111,6 +111,59 @@ const getProfile = async (req, res) => {
 };
 
 /**
+ * PUT /api/auth/profile
+ * Actualiza los datos del propio usuario autenticado.
+ * NUNCA permite modificar 'rol' ni 'activo', sin importar lo que venga en el body
+ * (ya filtrado también por validationMiddleware, esto es una segunda barrera).
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { nombre, correo, telefono, direccion, password } = req.body;
+    // IMPORTANTE: se desestructura sin 'rol' ni 'activo' para ignorarlos completamente del body
+
+    const usuario = await Usuario.findById(req.user._id);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    if (correo && correo !== usuario.correo) {
+      const correoEnUso = await Usuario.findOne({ correo, _id: { $ne: usuario._id } });
+      if (correoEnUso) {
+        return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo.' });
+      }
+      usuario.correo = correo;
+    }
+
+    if (nombre !== undefined) usuario.nombre = nombre;
+    if (telefono !== undefined) usuario.telefono = telefono;
+    if (direccion !== undefined) usuario.direccion = direccion;
+    if (password) usuario.password = password; // el pre('save') del modelo lo hashea automáticamente
+
+    await usuario.save();
+
+    res.status(200).json({
+      mensaje: 'Perfil actualizado exitosamente.',
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        telefono: usuario.telefono,
+        direccion: usuario.direccion,
+        rol: usuario.rol,
+        activo: usuario.activo,
+      },
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const mensajes = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({ mensaje: mensajes.join(', ') });
+    }
+    res.status(500).json({ mensaje: 'Error interno del servidor.', error: error.message });
+  }
+};
+
+/**
  * GET /api/auth/usuarios
  * Lista todos los usuarios — solo para admin
  */
@@ -127,4 +180,4 @@ const getUsuarios = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, getUsuarios };
+module.exports = { register, login, getProfile, updateProfile, getUsuarios };
