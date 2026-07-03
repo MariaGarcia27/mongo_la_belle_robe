@@ -7,13 +7,32 @@ const app = express()
 
 // ── Middlewares globales ──────────────────────────────
 app.use(helmet())
+
+// ── CORS CONFIG ───────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://la-belle-robe-app.vercel.app'
+]
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: (origin, callback) => {
+    // Permite herramientas como Postman o requests sin origin
+    if (!origin) return callback(null, true)
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+
+    return callback(new Error('No permitido por CORS'))
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }
+
 app.use(cors(corsOptions))
-app.use(express.json({limit: '5mb'}))
+
+// ── Parse JSON ─────────────────────────────────────────
+app.use(express.json({ limit: '5mb' }))
 
 // ── Ruta de salud (pública) ───────────────────────────
 app.get('/api/health', (req, res) => {
