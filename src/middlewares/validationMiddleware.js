@@ -15,6 +15,21 @@ const validarRegistro = [
   manejarErroresValidacion,
 ];
 
+const validarActualizarPerfil = [
+  body('nombre').optional().trim().notEmpty().withMessage('El nombre no puede estar vacío.'),
+  body('correo').optional().isEmail().withMessage('El correo no es válido.'),
+  body('telefono').optional().trim(),
+  body('direccion').optional().trim(),
+  body('password').optional().isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres.'),
+  body('passwordActual')
+    .if(body('password').exists({ checkFalsy: true }))
+    .notEmpty()
+    .withMessage('Debes ingresar tu contraseña actual para cambiarla.'),
+  body('rol').not().exists().withMessage('No tienes permiso para modificar el rol.'),
+  body('activo').not().exists().withMessage('No tienes permiso para modificar el estado de la cuenta.'),
+  manejarErroresValidacion,
+];
+
 const validarProducto = [
   body('nombre').trim().notEmpty().withMessage('El nombre del producto es obligatorio.'),
   body('precio').isFloat({ min: 0 }).withMessage('El precio debe ser un número positivo.'),
@@ -36,4 +51,4 @@ const validarEstadoPedido = [
   manejarErroresValidacion,
 ];
 
-module.exports = { validarRegistro, validarProducto, validarPago, validarEstadoPedido };
+module.exports = { validarRegistro, validarActualizarPerfil, validarProducto, validarPago, validarEstadoPedido };
