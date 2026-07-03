@@ -13,7 +13,7 @@ const register = async (req, res) => {
     // Verificar si el correo ya existe
     const usuarioExistente = await Usuario.findOne({ correo });
     if (usuarioExistente) {
-      return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo.' });
+      return res.status(400).json({ mensaje: 'El correo ya existe en el sistema.' });
     }
 
     // Crear usuario — el rol siempre será 'cliente' (forzado por el schema y aquí explícitamente)
@@ -118,10 +118,11 @@ const getProfile = async (req, res) => {
  */
 const updateProfile = async (req, res) => {
   try {
-    const { nombre, correo, telefono, direccion, password } = req.body;
+    const { nombre, correo, telefono, direccion, password, passwordActual } = req.body;
     // IMPORTANTE: se desestructura sin 'rol' ni 'activo' para ignorarlos completamente del body
 
-    const usuario = await Usuario.findById(req.user._id);
+    // Si va a cambiar la contraseña, necesitamos el hash guardado para compararla
+    const usuario = await Usuario.findById(req.user._id).select(password ? '+password' : '');
 
     if (!usuario) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
@@ -130,7 +131,7 @@ const updateProfile = async (req, res) => {
     if (correo && correo !== usuario.correo) {
       const correoEnUso = await Usuario.findOne({ correo, _id: { $ne: usuario._id } });
       if (correoEnUso) {
-        return res.status(400).json({ mensaje: 'Ya existe una cuenta con ese correo.' });
+        return res.status(400).json({ mensaje: 'El correo ya existe en el sistema.' });
       }
       usuario.correo = correo;
     }
@@ -138,7 +139,19 @@ const updateProfile = async (req, res) => {
     if (nombre !== undefined) usuario.nombre = nombre;
     if (telefono !== undefined) usuario.telefono = telefono;
     if (direccion !== undefined) usuario.direccion = direccion;
-    if (password) usuario.password = password; // el pre('save') del modelo lo hashea automáticamente
+
+    if (password) {
+      if (!passwordActual) {
+        return res.status(400).json({ mensaje: 'Debes ingresar tu contraseña actual para cambiarla.' });
+      }
+
+      const passwordActualValida = await compararPassword(passwordActual, usuario.password);
+      if (!passwordActualValida) {
+        return res.status(400).json({ mensaje: 'La contraseña actual es incorrecta.' });
+      }
+
+      usuario.password = password; // el pre('save') del modelo lo hashea automáticamente
+    }
 
     await usuario.save();
 
